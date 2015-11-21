@@ -26,6 +26,8 @@ struct AudioPlayer {
 	const enum OUTPUTFORMAT {
 		OUTPUTFORMAT_UINT8 = 0,				//  8bit unsigned int
 		OUTPUTFORMAT_INT16,					// 16bit   signed int
+		OUTPUTFORMAT_INT24,					// 24bit   signed int
+		OUTPUTFORMAT_INT32,					// 32bit   signed int
 		OUTPUTFORMAT_FLOAT,					// 32bit   signed float
 	};
 

@@ -204,6 +204,14 @@ AudioPlayer::AudioPlayer(unique_ptr<IDecoder> p_decoder, int p_openFlag, OUTPUTF
 			outputBufferType = BUFFERTYPE_INT16;
 			break;
 
+		case OUTPUTFORMAT_INT24:
+			outputBufferType = BUFFERTYPE_INT24;
+			break;
+
+		case OUTPUTFORMAT_INT32:
+			outputBufferType = BUFFERTYPE_INT32;
+			break;
+
 		case OUTPUTFORMAT_FLOAT:
 			outputBufferType = BUFFERTYPE_FLOAT;
 			break;
