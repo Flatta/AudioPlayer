@@ -1,0 +1,18 @@
+[submodule "opusfile"]
+	path = opusfile
+	url = https://github.com/xiph/opusfile
+[submodule "Vendor/flac"]
+	path = Vendor/flac
+	url = https://github.com/xiph/flac
+[submodule "Vendor/ogg"]
+	path = Vendor/ogg
+	url = https://github.com/xiph/ogg
+[submodule "Vendor/opus"]
+	path = Vendor/opus
+	url = https://github.com/xiph/opus
+[submodule "Vendor/opusfile"]
+	path = Vendor/opusfile
+	url = https://github.com/xiph/opusfile
+[submodule "Vendor/vorbis"]
+	path = Vendor/vorbis
+	url = https://github.com/xiph/vorbis

@@ -1,0 +1,244 @@
+#packopt name "AudioPlayerTest"
+;#packopt name "../Build/Win32/Debug/AudioPlayerTest"
+
+#include "AudioPlayer.as"
+
+// 選択可能なファイル名のフィルタ
+#define FILENAME_FILTER "flac;*.opus;*.ogg;*.wav"
+
+
+*init
+	// ファイル名設定
+	//*
+	dialog FILENAME_FILTER, 16
+	if stat == 0 : goto *start
+	file = refstr
+	/*/
+#ifdef _debug
+	file = dir_cur + "\\..\\TestFiles\\q6.ogg"
+#else
+	file = dir_exe + "\\..\\..\\TestFiles\\q6.ogg"
+#endif
+	//*/
+	
+	// ファイル読み込み
+	gosub *loadfile
+	
+	// エラー処理（手抜き）
+	if stat {
+		dialog "Unsupported format.", 1
+	}
+
+
+*start
+	// UI作成
+	pos 500, 0
+	objsize 140, 24
+	
+	volume = "1.00"
+	input volume
+	button gosub "Open", *_open
+	button gosub "Close", *_close
+	button gosub "Play / Stop", *_playstop
+	button gosub "Pause / Resume", *_pauseresume
+	button gosub "Loop File", *_loopfile
+	button gosub "Loop Seciton", *_loopsection
+	button gosub "Set Loop A", *_setloopa
+	button gosub "Set Loop B", *_setloopb
+	button gosub "Set Volume", *_setvolume
+	button gosub "Auto-Close", *_setautoclose
+
+*main
+	// 各種情報取得
+	ddim total, 1
+	APGetLengthS hAP, total
+	
+	ddim current, 1
+	APGetPositionS hAP, current
+	
+	ddim _volume, 1
+	APGetVolume hAP, _volume
+	
+	ddim looppoint, 2
+	APGetLoopPointS hAP, looppoint(0), looppoint(1)
+	
+	// 描画
+	redraw 0
+	color 255, 255, 255
+	boxf
+	color 0, 0, 0
+	pos 0, 0
+	mes strf("Handle:    %d", hAP)
+	mes strf("Exists:    %d", APExists(hAP))
+	mes strf("AutoClose: %d", APGetAutoCloseFlag(hAP))
+	mes strf("Finished:  %d", APGetFinishFlag(hAP))
+	mes strf("Paused:    %d", APGetPauseFlag(hAP))
+	mes strf("Looping:   %d  %8.3f / %8.3f", APGetLoopFlag(hAP), looppoint(0), looppoint(1))
+	mes strf("Volume:    %.2f", _volume)
+	mes strf("%6.1f / %6.1f", current, total)
+	redraw
+	
+	wait 10
+	
+	goto *main
+
+
+*loadfile
+	// 共通設定
+	openMode     = 1	// 0…ファイル、1…ファイル、2…メモリ
+	
+	openFlag     = 0
+	outputFormat = OUTPUTFORMAT_FLOAT
+	bufferSize   = 4096
+	bufferNumber = 3
+	
+	// ファイル読み込み
+	if openMode == 2 {
+		exist file
+		size = strsize
+		sdim data, size
+		bload file, data
+	}
+	
+	// 自動再生フラグを立てる（Shiftキーが押されていれば）
+	getkey shiftKey, 16
+	if shiftKey {
+		openflag |= OPENFLAG_AUTOSTART
+	}
+	
+	// 拡張子に応じて処理
+	switch getpath(file, 18)
+		case ".flac"
+			_checkMD5 = 1
+			switch openMode
+				case 0
+					hAP = APOpenFLACFileA(file, _checkMD5, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 1
+					hAP = APOpenFLACFileW(file, _checkMD5, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 2
+					hAP = APOpenFLACMemory(data, size, _checkMD5, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+			swend
+			swbreak
+		
+		case ".opus"
+			_float = 1
+			_dither = 1
+			switch openMode
+				case 0
+					hAP = APOpenOpusFileA(file, _float, _dither, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 1
+					hAP = APOpenOpusFileW(file, _float, _dither, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 2
+					hAP = APOpenOpusMemory(data, size, _float, _dither, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+			swend
+			swbreak
+		
+		case ".ogg"
+			_bitNum = 32
+			switch openMode
+				case 0
+					hAP = APOpenVorbisFileA(file, _bitNum, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 1
+					hAP = APOpenVorbisFileW(file, _bitNum, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 2
+					hAP = APOpenVorbisMemory(data, size, _bitNum, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+			swend
+			swbreak
+		
+		case ".wav"
+			switch openMode
+				case 0
+					hAP = APOpenWavFileA(file, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 1
+					hAP = APOpenWavFileW(file, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+				case 2
+					hAP = APOpenWavMemory(data, size, openFlag, outputFormat, bufferSize, bufferNumber)
+					swbreak
+			swend
+			swbreak
+		
+		default
+			return 2
+	swend
+	
+	// メモリ解放
+	if openMode == 2 {
+		sdim data
+	}
+	
+	// ループポイント設定
+	gosub *_setloopa
+	return 0
+
+
+*_open
+	// 選択ダイアログ表示
+	dialog FILENAME_FILTER, 16
+	if stat == 0 : return
+	file = refstr
+	
+	// 既存のプレイヤーを閉じる（Ctrlキーが押されていなければ）
+	getkey ctrlKey, 17
+	if ctrlKey == 0 {
+		APClose hAP
+	}
+	
+	// ファイル読み込み
+	gosub *loadfile
+	
+	// エラー処理（手抜き）
+	if stat {
+		dialog "Unsupported format.", 1
+	}
+	return
+
+*_close
+	APClose hAP
+	return
+
+*_playstop
+	if APGetFinishFlag(hAP) {
+		APPlay hAP
+	} else {
+		APStop hAP
+	}
+	return
+
+*_pauseresume
+	APSetPauseFlag hAP, APGetPauseFlag(hAP) ^ 1
+	return
+
+*_loopfile
+	APSetLoopFlag hAP, APGetLoopFlag(hAP) ^ LOOPFLAG_FILE
+	return
+
+*_loopsection
+	APSetLoopFlag hAP, APGetLoopFlag(hAP) ^ LOOPFLAG_SECTION
+	return
+
+*_setloopa
+	APSetLoopPointS hAP, 664962.0 / 44100, 289973.0 / 44100
+	return
+
+*_setloopb
+	APSetLoopPointS hAP, 373032.0 / 44100, 9714082.0 / 44100
+	return
+
+*_setvolume
+	APSetVolume hAP, double(volume)
+	return
+
+*_setautoclose
+	APSetAutoCloseFlag hAP, APGetAutoCloseFlag(hAP) ^ 1
+	return
