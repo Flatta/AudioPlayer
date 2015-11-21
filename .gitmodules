@@ -1,18 +1,20 @@
-[submodule "opusfile"]
-	path = opusfile
-	url = https://github.com/xiph/opusfile
 [submodule "Vendor/flac"]
 	path = Vendor/flac
-	url = https://github.com/xiph/flac
+	url = https://github.com/Flatta/flac
+	branch = ap-custom
 [submodule "Vendor/ogg"]
 	path = Vendor/ogg
-	url = https://github.com/xiph/ogg
+	url = https://github.com/Flatta/ogg
+	branch = ap-custom
 [submodule "Vendor/opus"]
 	path = Vendor/opus
-	url = https://github.com/xiph/opus
+	url = https://github.com/Flatta/opus
+	branch = ap-custom
 [submodule "Vendor/opusfile"]
 	path = Vendor/opusfile
-	url = https://github.com/xiph/opusfile
+	url = https://github.com/Flatta/opusfile
+	branch = ap-custom
 [submodule "Vendor/vorbis"]
 	path = Vendor/vorbis
-	url = https://github.com/xiph/vorbis
+	url = https://github.com/Flatta/vorbis
+	branch = ap-custom
