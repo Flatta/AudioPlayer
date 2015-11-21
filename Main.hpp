@@ -33,7 +33,7 @@ constexpr auto OPENFLAG_AUTOCLOSE = 0x00000010;
 #endif
 
 
-using index_t = unsigned int;
+using index_t = int;
 
 
 bool _APExists(index_t index);
