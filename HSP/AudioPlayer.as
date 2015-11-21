@@ -41,6 +41,7 @@
 #func  APClear            "APClear"
 #func  APFree      onexit "APFree"
 
+#define APOpenFLACFile APOpenFLACFileA
 #define APOpenOpusFile APOpenOpusFileA
 #define APOpenVorbisFile APOpenVorbisFileA
 #define APOpenWavFile APOpenWavFileA
